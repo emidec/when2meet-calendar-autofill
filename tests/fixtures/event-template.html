@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mock when2meet event</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  .grids { display: flex; gap: 40px; }
+  .head { display: inline-block; width: 44px; text-align: center; font-size: 10px; }
+  .cell { display: inline-block; width: 44px; height: 9px; border-left: 1px solid black; border-top: 1px solid black; background: #ffdede; vertical-align: top; }
+  #GroupGridSlots .cell { background: #ffffff; }
+</style>
+<script type="text/javascript">
+  // Same globals and functions the real when2meet page exposes (simplified re-implementation).
+  var UserID = 0;
+  var PeopleNames = new Array();
+  var PeopleIDs = new Array();
+  var TimeOfSlot = new Array();
+  var AvailableAtSlot = new Array();
+  var AvailableIDs = new Array();
+
+  function ReColorIndividual() {
+    for (var i = 0; i < TimeOfSlot.length; i++) {
+      var el = document.getElementById("YouTime" + TimeOfSlot[i]);
+      if (el) el.style.background = AvailableAtSlot[i].indexOf(UserID) !== -1 ? "#339900" : "#ffdede";
+    }
+  }
+
+  function ReColorGroup() {
+    var max = 0;
+    for (var i = 0; i < AvailableAtSlot.length; i++) max = Math.max(max, AvailableAtSlot[i].length);
+    for (var i = 0; i < AvailableAtSlot.length; i++) {
+      var shade = max ? Math.round(255 - (AvailableAtSlot[i].length / max) * 153) : 255;
+      document.getElementById("GroupTime" + TimeOfSlot[i]).style.background = "rgb(" + shade + ",255," + shade + ")";
+    }
+  }
+
+  function ProcessLogin() {
+    var params = new URLSearchParams();
+    params.append('id', '{{EVENT_ID}}');
+    params.append('name', document.getElementById('name').value);
+    params.append('password', document.getElementById('password').value);
+    fetch("ProcessLogin.php", { method: "POST", body: params })
+      .then(function (r) { return r.text(); })
+      .then(function (text) {
+        var id = parseInt(text);
+        if (!id) { alert(text); return; }
+        UserID = id;
+        document.getElementById("SignIn").style.display = 'none';
+        document.getElementById("YouGrid").style.display = '';
+        if (PeopleIDs.indexOf(UserID) === -1) { PeopleIDs.push(UserID); PeopleNames.push(document.getElementById('name').value); }
+        document.getElementById("UserName").textContent = PeopleNames[PeopleIDs.indexOf(UserID)];
+        ReColorIndividual();
+      });
+    return false;
+  }
+
+{{SLOT_SCRIPT}}
+</script>
+</head>
+<body>
+<h1>Mock event</h1>
+<div id="ChooseTimeZone">
+  <span id="YourTimeZone">Your Time Zone: </span>
+  <select id="ParticipantTimeZone"><option value="America/Los_Angeles" selected>America/Los_Angeles</option></select>
+</div>
+<div id="AvailabilityGrids">
+<script type="text/javascript">
+{{PEOPLE_SCRIPT}}
+</script>
+<div class="grids">
+  <div id="YouAvailability">
+    <div id="SignIn">
+      <b>Sign In</b><br>
+      Your Name: <input id="name"><br>
+      Password (optional): <input id="password" type="password"><br>
+      <input type="button" value="Sign In" onclick="ProcessLogin()">
+    </div>
+    <div id="YouGrid" style="display:none;">
+      <b><span id="UserName"></span>'s Availability</b><br>
+      {{HEADERS}}<br>
+      <div id="YouGridSlots">{{YOU_CELLS}}</div>
+    </div>
+  </div>
+  <div id="GroupGrid">
+    <b>Group's Availability</b><br>
+    {{HEADERS}}<br>
+    <div id="GroupGridSlots">{{GROUP_CELLS}}</div>
+  </div>
+</div>
+</div>
+<script>ReColorGroup();</script>
+<!-- Extension content scripts, loaded the way Chrome would inject them (bridge = page world). -->
+<script src="/tests/chrome-shim.js"></script>
+<script src="/extension/content/bridge.js"></script>
+<script src="/extension/content/content.js"></script>
+</body>
+</html>

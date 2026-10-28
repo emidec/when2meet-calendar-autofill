@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Calendar Autofill for When2meet",
+  "short_name": "W2M Autofill",
+  "version": "1.0.0",
+  "description": "Fill your when2meet availability from Google Calendar or any iCal feed in one click.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAySwI1IWCdPRgJsKkFqz0FbvV7Sp+UYbX4GAZ9Wyvchs761PypupE/1FJg9GDjUGrVgb1VSIJQLgqXZ/5Ug7BRpjjKBGDsV5QnzZbpZTWRvfSnvnOnHmcd0tvZTExM4lYsfEnDw2s0qz2gUaF/LR5NbRNHMlTbjZGBGSk9rwkeiUYD7QIcpJygCoxXtHEJTRbCw7OlXHcp0ogjJICicWHiGer4nuizPE6zGVEsHbQbyh9u6ona1tTmjEAWbxAeYWhk0qkJxwAnt/i9LofVvM5/Rv0b7kmdA04m9lVRIRnEiYuX4xW/iPQ/hp8rnZUptnBPyuFl1GdfsN7EROGm4wamQIDAQAB",
+  "minimum_chrome_version": "116",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Calendar Autofill settings",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "identity"],
+  "host_permissions": ["https://www.googleapis.com/*"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.when2meet.com/*", "https://when2meet.com/*"],
+      "js": ["content/bridge.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.when2meet.com/*", "https://when2meet.com/*"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

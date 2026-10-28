@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calendar Autofill for When2meet</title>
+  <link rel="icon" href="../icons/icon32.png">
+  <link rel="stylesheet" href="options.css">
+  <script type="module" src="options.js"></script>
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <img src="../icons/icon48.png" width="40" height="40" alt="">
+      <div>
+        <h1>Calendar Autofill for When2meet</h1>
+        <p>Open any when2meet event, sign in, and your availability is filled from the calendars below.</p>
+      </div>
+    </header>
+
+    <section class="card" aria-labelledby="google-title">
+      <h2 id="google-title">Google Calendar</h2>
+
+      <details id="google-setup" class="setup">
+        <summary>One-time setup: create a Google OAuth client ID</summary>
+        <ol>
+          <li>Open the <a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener">Google Cloud console</a> and create a project (any name).</li>
+          <li>Enable the <a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" rel="noopener">Google Calendar API</a> for it.</li>
+          <li>Under <a href="https://console.cloud.google.com/auth/overview" target="_blank" rel="noopener">Google Auth Platform</a>, configure the consent screen: audience <b>External</b>, and add your Google address(es) as <b>test users</b>.</li>
+          <li>Go to <a href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noopener">Clients</a> → <b>Create client</b> → type <b>Web application</b>. Under <b>Authorized redirect URIs</b>, add:
+            <div class="copy-row"><code id="redirect-uri"></code><button type="button" class="secondary small" id="copy-redirect">Copy</button></div>
+          </li>
+          <li>Copy the client ID it shows and paste it here.</li>
+        </ol>
+      </details>
+
+      <form id="client-form" class="row">
+        <label for="client-id" class="grow">OAuth client ID
+          <input id="client-id" type="text" spellcheck="false" autocomplete="off" placeholder="1234567890-abc123.apps.googleusercontent.com">
+        </label>
+        <button type="submit" class="secondary">Save</button>
+      </form>
+
+      <div class="row">
+        <button type="button" id="connect-google" class="primary">Connect a Google account</button>
+        <span id="google-message" class="message" role="status"></span>
+      </div>
+      <div id="google-accounts"></div>
+    </section>
+
+    <section class="card" aria-labelledby="ics-title">
+      <h2 id="ics-title">iCal links <span class="badge">no setup needed</span></h2>
+      <p class="hint">
+        Paste a private calendar link from any app — in Google Calendar it's
+        <b>Settings → your calendar → Integrate calendar → Secret address in iCal format</b>. Outlook and iCloud
+        "publish calendar" links work too.
+      </p>
+      <ul id="ics-list" class="list"></ul>
+      <form id="ics-form" class="stack">
+        <div class="row">
+          <label for="ics-name">Name
+            <input id="ics-name" type="text" placeholder="Work" maxlength="60">
+          </label>
+          <label for="ics-url" class="grow">iCal URL
+            <input id="ics-url" type="url" required spellcheck="false" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics">
+          </label>
+        </div>
+        <div class="row">
+          <button type="submit" class="primary">Add calendar</button>
+          <span id="ics-message" class="message" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="prefs-title">
+      <h2 id="prefs-title">Autofill preferences</h2>
+      <form id="prefs" class="stack">
+        <label class="check"><input type="checkbox" name="autoFillOnSignIn"> Fill automatically when I sign in to an event I haven't filled yet</label>
+        <label for="prefillName">Name to pre-type in when2meet's sign-in box
+          <input id="prefillName" name="prefillName" type="text" maxlength="80" placeholder="Optional">
+        </label>
+        <div class="row">
+          <label for="bufferMinutes">Buffer around events
+            <select id="bufferMinutes" name="bufferMinutes">
+              <option value="0">None</option>
+              <option value="5">5 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+            </select>
+          </label>
+          <label for="minBlockMinutes">Ignore free gaps shorter than
+            <select id="minBlockMinutes" name="minBlockMinutes">
+              <option value="0">Don't ignore</option>
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="90">1.5 hours</option>
+              <option value="120">2 hours</option>
+            </select>
+          </label>
+        </div>
+        <div class="row align-end">
+          <label class="check"><input type="checkbox" name="limitHours"> Only mark me available between</label>
+          <input type="time" name="dayStart" aria-label="Earliest time" step="900">
+          <span>and</span>
+          <input type="time" name="dayEnd" aria-label="Latest time" step="900">
+        </div>
+        <fieldset>
+          <legend>Never mark me available on</legend>
+          <div class="weekdays" id="weekdays"></div>
+        </fieldset>
+        <label class="check"><input type="checkbox" name="ignoreAllDay"> Ignore all-day events in iCal links (holidays, birthdays, reminders)</label>
+        <p class="hint">Google Calendar uses each event's own Busy/Free setting.</p>
+        <span id="prefs-message" class="message" role="status"></span>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="check-title">
+      <h2 id="check-title">Check what the extension sees</h2>
+      <div class="row">
+        <button type="button" id="check-busy" class="secondary">Show my busy times for the next 7 days</button>
+      </div>
+      <div id="check-result" class="check-result" role="status"></div>
+    </section>
+  </main>
+</body>
+</html>
